@@ -55,7 +55,6 @@ function colorForTemp(temp: number) {
 function StyledTemp(props: PropsWithChildren<{ temp: number }>) {
   const { temp, children } = props;
 
-  // TODO calculate color based on temp
   return (
     <b style={{ color: colorForTemp(temp) }}>{children || <>{temp}&deg;</>}</b>
   );
@@ -146,6 +145,15 @@ function App() {
     },
   });
   const showLayers = lowTemp <= 70 && Math.abs(highTemp - lowTemp) > 20;
+
+  const startTime = new Date(2023, 9, 8, 8, 0);
+  const times = [startTime];
+  for (let i = 1; i <= 5; i++) {
+    const newDate = new Date(startTime);
+    newDate.setHours(8 + i * 2);
+    times.push(newDate);
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xs" fixed sx={{ py: 3.12, px: 2.25 }}>
@@ -155,7 +163,8 @@ function App() {
             <>
               ,<br /> and <b>layers</b>
             </>
-          )}.
+          )}
+          .
         </Typography>
         <Typography>
           It feels like <StyledTemp temp={lowTemp} /> right now,
@@ -168,7 +177,14 @@ function App() {
           Wind 10 mph out of the southeast.
         </Typography>
         <LineChart
-          xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+          xAxis={[
+            {
+              data: times,
+              scaleType: "time",
+              min: startTime,
+              tickMinStep: 3600 * 1000 * 2,
+            },
+          ]}
           series={[
             {
               data: [
@@ -179,10 +195,10 @@ function App() {
                 lowTemp + 5,
                 lowTemp + 4,
               ],
-              color: theme.palette.primary.main
+              color: theme.palette.primary.main,
             },
           ]}
-          width={338}
+          // width={338}
           height={160}
           margin={{
             top: 10,
