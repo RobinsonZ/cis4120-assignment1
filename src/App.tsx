@@ -11,7 +11,6 @@ import {
   ThemeProvider,
   Typography,
   createTheme,
-  useTheme,
 } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
 import { PropsWithChildren, useState } from "react";
