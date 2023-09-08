@@ -56,7 +56,6 @@ function colorForTemp(temp: number) {
 function StyledTemp(props: PropsWithChildren<{ temp: number }>) {
   const { temp, children } = props;
 
-  const theme = useTheme();
   // TODO calculate color based on temp
   return (
     <b style={{ color: colorForTemp(temp) }}>{children || <>{temp}&deg;</>}</b>
