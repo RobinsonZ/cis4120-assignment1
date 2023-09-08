@@ -113,7 +113,7 @@ function Recommendation(props: { temp: number }) {
 
 function App() {
   const [lowTemp, setLowTemp] = useState(32);
-  const [highTemp, setHighTemp] = useState(52);
+  const [highTemp, setHighTemp] = useState(53);
 
   const theme = createTheme({
     typography: {
