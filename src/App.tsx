@@ -1,20 +1,33 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  Box,
   Button,
   Card,
   CardActionArea,
   CardActions,
   CardContent,
   Container,
+  Dialog,
   Divider,
+  Slide,
   Slider,
   ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   createTheme,
+  styled,
 } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
-import { PropsWithChildren, useState } from "react";
+import {
+  PropsWithChildren,
+  forwardRef,
+  useState,
+  ReactElement,
+  Ref,
+} from "react";
 import NearMeIcon from "@mui/icons-material/NearMe";
+import { TransitionProps } from "@mui/material/transitions";
 
 // copied entirely from https://stackoverflow.com/a/44134328/13644774
 // (tiny tweaks to make typechecker happy)
@@ -31,9 +44,9 @@ function hslToHex(h: number, s: number, l: number) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// copied entirely from https://stackoverflow.com/a/16469279/13644774
+// adapted from https://stackoverflow.com/a/16469279/13644774
 function colorForTemp(temp: number) {
-  // convert to celsius because the example uses celsius
+  // Zack's tweak: convert to celsius because the example uses celsius
   temp = ((temp - 32) * 5) / 9;
 
   // Map the temperature to a 0-1 range
@@ -110,9 +123,32 @@ function Recommendation(props: { temp: number }) {
   );
 }
 
+const Transition = forwardRef(function Transition(
+  props: TransitionProps & {
+    children: ReactElement;
+  },
+  ref: Ref<unknown>
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 function App() {
   const [lowTemp, setLowTemp] = useState(32);
   const [highTemp, setHighTemp] = useState(53);
+
+  const [correctOpen, setCorrectOpen] = useState(false);
+
+  const [correction, setCorrection] = useState(30);
+
+  const [layers, setLayers] = useState("yes");
+
+  const handleCorrectOpen = () => {
+    setCorrectOpen(true);
+  };
+
+  const handleCorrectClose = () => {
+    setCorrectOpen(false);
+  };
 
   const theme = createTheme({
     typography: {
@@ -153,6 +189,13 @@ function App() {
     newDate.setHours(8 + i * 2);
     times.push(newDate);
   }
+
+  const PrimaryColoredButton = styled(ToggleButton)({
+    "&.Mui-selected, &.Mui-selected:hover": {
+      color: "white",
+      backgroundColor: colorForTemp(correction),
+    },
+  });
 
   return (
     <ThemeProvider theme={theme}>
@@ -257,9 +300,88 @@ function App() {
           </CardContent>
           <CardActions>
             <Button size="small">Yes</Button>
-            <Button size="small">No</Button>
+            <Button size="small" onClick={handleCorrectOpen}>
+              No
+            </Button>
           </CardActions>
         </Card>
+        <Dialog
+          fullScreen
+          open={correctOpen}
+          onClose={handleCorrectClose}
+          TransitionComponent={Transition}
+        >
+          <Container maxWidth="xs" fixed sx={{ py: 3.12, px: 2.25, height: "100%" }}>
+            <Typography variant="h1" marginBottom="0.75rem">
+              What was the weather like yesterday?
+            </Typography>
+            <Typography variant="body1" marginBottom="0.75rem">
+              What was it a good day to wear?
+            </Typography>
+            <ToggleButtonGroup
+              orientation="vertical"
+              onChange={(_event, value) => value && setCorrection(value)}
+              value={correction}
+              exclusive
+              fullWidth
+              sx={{ marginBottom: "0.75rem" }}
+            >
+              {[
+                ["shorts", 80],
+                ["a short-sleeve shirt", 70],
+                ["a long-sleeve shirt", 60],
+                ["a light jacket", 50],
+                ["a jacket", 40],
+                ["a heavy jacket", 30],
+              ].map(([clothing, temp]) => {
+                // adapted from https://stackoverflow.com/a/69707942/13644774
+                const ColoredButton = styled(ToggleButton)({
+                  "&.Mui-selected, &.Mui-selected:hover": {
+                    color: "white",
+                    backgroundColor: colorForTemp(temp as number),
+                  },
+                });
+                return (
+                  <ColoredButton value={temp} fullWidth>
+                    <Box>{clothing}</Box>
+                  </ColoredButton>
+                );
+              })}
+            </ToggleButtonGroup>
+            <Typography variant="body1" marginBottom="0.75rem">
+              Did you need layers?
+            </Typography>
+            <ToggleButtonGroup
+              orientation="vertical"
+              onChange={(_event, value) => value && setLayers(value)}
+              value={layers}
+              exclusive
+              fullWidth
+              sx={{ marginBottom: "1.5rem" }}
+            >
+              <PrimaryColoredButton value="yes" fullWidth>
+                <Box>Yes</Box>
+              </PrimaryColoredButton>
+              <PrimaryColoredButton value="no" fullWidth>
+                <Box>No</Box>
+              </PrimaryColoredButton>
+            </ToggleButtonGroup>
+            <Button
+              variant="contained"
+              style={{
+                backgroundColor: colorForTemp(correction),
+                color: "white",
+                width: "100%",
+                left: "50%",
+                bottom: "-50px",
+                transform: "translateX(-50%)",
+              }}
+              onClick={() => setCorrectOpen(false)}
+            >
+              Submit
+            </Button>
+          </Container>
+        </Dialog>
         <Divider sx={{ mt: 2, fontFamily: "Roboto" }}>
           Temperature control (for demo)
         </Divider>
